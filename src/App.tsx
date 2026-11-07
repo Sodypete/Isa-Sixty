@@ -17,7 +17,8 @@ import {
   Plus, Minus, Trash2, CreditCard, Send, CheckCircle, Clock,
   Calendar, MapPin, Sparkles, Phone, Mail, User, Check,
   ChevronDown, ChevronUp, Copy, Printer, CheckSquare, Square,
-  ShoppingBag, ClipboardCheck, ArrowRight, X, AlertCircle, LogOut
+  ShoppingBag, ClipboardCheck, ArrowRight, X, AlertCircle, LogOut,
+  Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -29,18 +30,26 @@ import { MENU_ITEMS, CATEGORIES } from './data';
 // @ts-ignore
 import logoUrl from './assets/images/Logo/IsaiahSixty Logo.png';
 import AdminDashboard from './components/AdminDashboard';
+import ChinChinSubpage from './components/ChinChinSubpage';
 
 export default function App() {
   // --- STATE MANAGEMENT ---
   
   // Active state to track if we are viewing the Admin Workspace Sync Portal
   const [isAdmin, setIsAdmin] = useState(false);
+  // Active state to track if we are viewing the dedicated Chin Chin showcase subpage
+  const [isChinChinPage, setIsChinChinPage] = useState(false);
 
   useEffect(() => {
     // Monitor both sub-directory pathname and window hash for route matching
     const handleLocationChange = () => {
       const isRoute = window.location.pathname === '/admin' || window.location.hash === '#admin';
       setIsAdmin(isRoute);
+
+      const isChinChin = window.location.pathname === '/chinchin' || 
+                         window.location.hash === '#chinchin' || 
+                         window.location.hash === '#/chinchin';
+      setIsChinChinPage(isChinChin);
     };
 
     handleLocationChange();
@@ -471,6 +480,21 @@ We turn your catering events into golden culinary moments.
     return <AdminDashboard />;
   }
 
+  if (isChinChinPage) {
+    return (
+      <ChinChinSubpage
+        cart={cart}
+        onAddToCart={handleAddToCart}
+        onRemoveFromCart={handleRemoveFromCart}
+        onBack={() => {
+          window.location.hash = '';
+          setIsChinChinPage(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
   return (
     <div id="catering_app" className="min-h-screen bg-[#F9FAFB] text-[#1F2937] font-sans selection:bg-[#8B5E34] selection:text-white">
       
@@ -555,6 +579,21 @@ We turn your catering events into golden culinary moments.
                     <span className="font-medium">(639)-470-6430</span>
                   </div>
                 </div>
+
+                {/* Direct Chin Chin Showcase Subpage Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = '#chinchin';
+                    setIsChinChinPage(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-1.5 bg-[#FAF5EE] text-[#8B5E34] border border-[#E8DAC6] hover:bg-[#F2E8DA] px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer group"
+                  title="View Chin Chin subpage with photo galleries for 300g, 700g, and 1500g"
+                >
+                  <Cookie className="w-3.5 h-3.5 text-[#8B5E34] group-hover:scale-110 transition-transform" />
+                  <span>Chin Chin (300g, 700g, 1500g)</span>
+                </button>
 
                 {/* Small Cart Active Button */}
                 <div className="relative">
@@ -789,6 +828,26 @@ We turn your catering events into golden culinary moments.
                                 })}
                               </div>
                             </div>
+                          )}
+
+                          {/* DIRECT CHIN CHIN SUBPAGE & GALLERY BUTTON */}
+                          {item.id === 'chops-chin-chin' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                window.location.hash = '#chinchin';
+                                setIsChinChinPage(true);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="w-full mt-2.5 py-2 px-3 rounded-xl bg-gradient-to-r from-[#FAF5EE] to-[#F3E7D5] hover:from-[#F3E7D5] hover:to-[#EBDAC3] border border-[#DFCBB2] text-[#8B5E34] text-xs font-bold transition-all flex items-center justify-between shadow-2xs group-hover:border-[#8B5E34]/50 cursor-pointer"
+                              title="Click to open dedicated Chin Chin subpage with photo galleries for 300g, 700g, and 1500g"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <ImageIcon className="w-3.5 h-3.5 text-[#8B5E34]" />
+                                <span>Chin Chin Subpage & Galleries (300g, 700g, 1500g)</span>
+                              </div>
+                              <ArrowRight className="w-3.5 h-3.5 text-[#8B5E34]" />
+                            </button>
                           )}
                         </div>
 

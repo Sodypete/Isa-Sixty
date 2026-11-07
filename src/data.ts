@@ -22,6 +22,9 @@ import vegetableSoupImg from './assets/images/Menu/Vegetable Soup.jpeg';
 import whiteRiceImg from './assets/images/Menu/White rice.jpg';
 import friedFishImg from './assets/images/Menu/Fried Fish.jpg';
 import chinChinImg from './assets/images/Menu/Chin Chin.jpg';
+import chinChin300gImg from './assets/images/Menu/Chin Chin 300g.jpg';
+import chinChin700gImg from './assets/images/Menu/Chin Chin 700g.jpg';
+import chinChin1500gImg from './assets/images/Menu/Chin Chin 1500g.jpg';
 
 // Export categories to preserve order and grouping in the UI
 export const CATEGORIES: { name: FoodCategory; icon: string; description: string }[] = [
@@ -184,14 +187,14 @@ export const MENU_ITEMS: MenuItem[] = [
     id: 'chops-chin-chin',
     name: 'Chin Chin',
     category: 'Small chops',
-    unit: '1.5kg',
-    price: 40.00,
-    description: 'Crispy, golden-fried crunchy West African pastry bites delicately flavored with nutmeg, sweet cream, and pure vanilla. Perfect for events and party snacking.',
+    unit: '300g',
+    price: 12.00,
+    description: 'Crispy, golden-fried crunchy West African pastry bites delicately flavored with nutmeg, sweet cream, and pure vanilla. Available in 300g snack pouch, 700g family canister, and 1500g party bucket.',
     imageUrl: chinChinImg,
     portions: [
-      { id: '1.5kg', label: '1.5kg', unit: '1.5kg', price: 40.00 },
-      { id: '1kg', label: '1kg', unit: '1kg', price: 28.00 },
-      { id: '0.5kg', label: '0.5kg', unit: '0.5kg', price: 16.00 }
+      { id: '300g', label: '300g', unit: '300g pouch', price: 12.00 },
+      { id: '700g', label: '700g', unit: '700g canister', price: 22.00 },
+      { id: '1500g', label: '1500g', unit: '1500g (1.5kg) bucket', price: 40.00 }
     ]
   },
   {
@@ -299,3 +302,120 @@ export const MENU_ITEMS: MenuItem[] = [
     description: 'Delicately textured, smooth semolina swallow prepared carefully to avoid lumps, pairing perfectly with egusi.'
   }
 ];
+
+export interface ChinChinPictureItem {
+  id: string;
+  url: string;
+  title: string;
+  caption: string;
+  dateAdded?: string;
+  isUserAdded?: boolean;
+}
+
+export interface ChinChinSizeSpecification {
+  id: '300g' | '700g' | '1500g';
+  weight: string; // '300g', '700g', '1500g'
+  header: string; // Header for this size
+  subHeader: string;
+  badge: string;
+  price: number;
+  servings: string;
+  packaging: string;
+  highlights: string[];
+  description: string;
+  defaultPictures: ChinChinPictureItem[];
+}
+
+export const CHIN_CHIN_SIZES_DATA: ChinChinSizeSpecification[] = [
+  {
+    id: '300g',
+    weight: '300g',
+    header: '300g Artisanal Snack Pouch',
+    subHeader: 'Personal on-the-go snack or party favor',
+    badge: 'Grab & Go Size',
+    price: 12.00,
+    servings: '1 - 2 Persons',
+    packaging: 'Aroma-Sealed Kraft Stand-Up Pouch with Clear Display Window',
+    highlights: [
+      'Resealable zipper keeps chin chin crisp for weeks',
+      'Ideal for gifts, goodie bags, desk snacks, and personal treats',
+      'Freshly baked daily with authentic nutmeg & vanilla'
+    ],
+    description: 'Our 300g snack pouch is designed for convenience without compromising on quality. Filled with crunchy, bite-sized golden pastry bites seasoned with real dairy butter and delicate nutmeg.',
+    defaultPictures: [
+      {
+        id: 'pic-300g-1',
+        url: chinChin300gImg,
+        title: '300g Kraft Display Pouch',
+        caption: 'Resealable craft standing pouch with clear display window showing crisp chin chin cubes.'
+      },
+      {
+        id: 'pic-300g-2',
+        url: chinChinImg,
+        title: 'Artisanal Bowl Presentation',
+        caption: 'Freshly fried golden cubes poured into a ceramic bowl ready to enjoy.'
+      }
+    ]
+  },
+  {
+    id: '700g',
+    weight: '700g',
+    header: '700g Gourmet Family Canister',
+    subHeader: 'Medium table centerpiece & sharing jar',
+    badge: 'Most Popular Family Size',
+    price: 22.00,
+    servings: '4 - 6 Persons',
+    packaging: 'Clear Airtight Hexagonal Canister with Metallic Gold Screw Top',
+    highlights: [
+      'Airtight luxury container preserves perfect crunch',
+      'Stunning tabletop presentation for family gatherings and living rooms',
+      'The ideal hostess gift or holiday present'
+    ],
+    description: 'The 700g canister is the centerpiece favorite for homes and office spaces. Packed generously in an elegant clear canister jar with a gold metallic lid that keeps every piece delightfully crunchy.',
+    defaultPictures: [
+      {
+        id: 'pic-700g-1',
+        url: chinChin700gImg,
+        title: '700g Airtight Hexagonal Canister',
+        caption: 'Gourmet transparent jar with gold lid displaying amber-golden chin chin pieces.'
+      },
+      {
+        id: 'pic-700g-2',
+        url: chinChinImg,
+        title: 'Hand-Cut Pastry Texture',
+        caption: 'Close-up of golden brown pastry cubes with delicate sweet-savory crumb.'
+      }
+    ]
+  },
+  {
+    id: '1500g',
+    weight: '1500g',
+    header: '1500g Grand Celebration Bucket',
+    subHeader: 'Feast, banquet & catering party size (1.5 kg)',
+    badge: 'Catering & Event Value',
+    price: 40.00,
+    servings: '10 - 15 Persons',
+    packaging: 'Heavy-Duty Food-Grade Party Tub Bucket with Carrying Handle & Snap Lock',
+    highlights: [
+      'Maximum value per gram for weddings, birthdays, and church events',
+      'Sturdy carry handle for easy transport and party setup',
+      'Provides generous portions for 10 to 15 happy guests'
+    ],
+    description: 'When hosting an unforgettable party or celebrating a special milestone, the 1500g (1.5kg) Grand Celebration Bucket delivers ample crunchy delight. Handcrafted in small batches and packed to the brim.',
+    defaultPictures: [
+      {
+        id: 'pic-1500g-1',
+        url: chinChin1500gImg,
+        title: '1500g Party Catering Bucket',
+        caption: 'Generous 1.5kg clear catering bucket with sturdy handle and gold celebration seal.'
+      },
+      {
+        id: 'pic-1500g-2',
+        url: chinChinImg,
+        title: 'Celebration Platter Serving',
+        caption: 'Heaped serving bowl ready for grand wedding receptions and anniversary buffets.'
+      }
+    ]
+  }
+];
+
