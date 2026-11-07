@@ -1,0 +1,6 @@
+{
+  "name": "Isaiah Sixty Creations",
+  "description": "An elegant catering order and payment tracking page for Isaiah Sixty Creations, featuring a categorized menu, interactive cart, and flexible payment options.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
