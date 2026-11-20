@@ -157,6 +157,15 @@ export const sendOrderEmails = async (
           <p style="margin: 8px 0 0 0; font-size: 13px; color: #065f46; font-weight: bold;">Payment Status: ${paymentStatus}</p>
         </div>
       </div>
+
+      <div style="background-color: #fdfbf7; border: 1px solid #e5e7eb; padding: 12px 15px; border-radius: 8px; margin: 15px 0; font-size: 12px; color: #4b5563;">
+        <p style="margin: 0 0 6px 0; font-weight: bold; color: #1f2937;">Isaiah Sixty Creations Ordering Notice:</p>
+        <ul style="margin: 0; padding-left: 18px; line-height: 1.5; color: #6b7280;">
+          <li>We require a minimum 48-hour advanced booking for large tray sizes.</li>
+          <li>Estimated items (*) like swallow rolls and plain rice trays are custom adjustable to cater to custom crowd guest count requests.</li>
+          <li>Please explicitly state allergies or spices customization requests inside the Special Instructions chef box.</li>
+        </ul>
+      </div>
       
       <p style="font-size: 14px; line-height: 1.5; margin-top: 20px;">Have a delicious day,<br><b>Isaiah Sixty Creations.</b></p>
     </div>

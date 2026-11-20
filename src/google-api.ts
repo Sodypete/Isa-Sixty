@@ -34,11 +34,14 @@ export const sendOrderEmails = async (
     eventTime: string;
     orderType: string;
     deliveryAddress?: string;
+    interacRefNumber?: string;
     specialInstructions?: string;
     isDepositPaid: boolean;
     isFullPaymentMade: boolean;
     itemsText: string;
     billingHtml: string;
+    isChicagoLocalPickup?: boolean;
+    pickupAddressNote?: string;
   }
 ) => {
   const paymentStatus = orderDetails.isFullPaymentMade
@@ -49,6 +52,9 @@ export const sendOrderEmails = async (
 
   const deliveryAddressHtml = orderDetails.deliveryAddress
     ? `<p style="margin: 4px 0;"><b>Delivery Address:</b> ${orderDetails.deliveryAddress}</p>`
+    : '';
+  const interacRefHtml = orderDetails.interacRefNumber
+    ? `<p style="margin: 4px 0; font-size: 13px;"><b>Interac Ref Number:</b> ${orderDetails.interacRefNumber}</p>`
     : '';
 
   // 1. Customer Receipt Email Content
@@ -66,6 +72,7 @@ export const sendOrderEmails = async (
         <p style="margin: 4px 0; font-size: 13px;"><b>Fulfillment:</b> ${orderDetails.orderType.toUpperCase()}</p>
         <p style="margin: 4px 0; font-size: 13px;"><b>Date & Time:</b> ${orderDetails.eventDate} @ ${orderDetails.eventTime}</p>
         ${deliveryAddressHtml}
+        ${interacRefHtml}
         
         <h4 style="border-top: 1px dashed #eaeaea; padding-top: 10px; margin-bottom: 8px; color: #4B2F1D; font-size: 13px;">Ordered Items:</h4>
         <pre style="font-family: monospace; font-size: 12px; white-space: pre-wrap; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #eaeaea; margin: 0;">${orderDetails.itemsText}</pre>
@@ -74,6 +81,15 @@ export const sendOrderEmails = async (
           ${orderDetails.billingHtml}
           <p style="margin: 8px 0 0 0; font-size: 13px; color: #065f46; font-weight: bold;">Payment Status: ${paymentStatus}</p>
         </div>
+      </div>
+
+      <div style="background-color: #fdfbf7; border: 1px solid #e5e7eb; padding: 12px 15px; border-radius: 8px; margin: 15px 0; font-size: 12px; color: #4b5563;">
+        <p style="margin: 0 0 6px 0; font-weight: bold; color: #1f2937;">Isaiah Sixty Creations Ordering Notice:</p>
+        <ul style="margin: 0; padding-left: 18px; line-height: 1.5; color: #6b7280;">
+          <li>We require a minimum 48-hour advanced booking for large tray sizes.</li>
+          <li>Estimated items (*) like swallow rolls and plain rice trays are custom adjustable to cater to custom crowd guest count requests.</li>
+          <li>Please explicitly state allergies or spices customization requests inside the Special Instructions chef box.</li>
+        </ul>
       </div>
       
       <p style="font-size: 14px; line-height: 1.5; margin-top: 20px;">Have a delicious day,<br><b>Isaiah Sixty Creations.</b></p>
@@ -86,11 +102,15 @@ export const sendOrderEmails = async (
     ? `<p style="color: #991b1b; background-color: #fef2f2; border: 1px solid #fca5a5; padding: 12px; border-radius: 6px; font-size: 14px;"><b>SPECIAL INSTRUCTIONS: ${orderDetails.specialInstructions.toUpperCase()}</b></p>`
     : '<p style="color: #6b7280; font-size: 13px;">No special instructions specified.</p>';
 
+  const chicagoPickupOwnerHtml = orderDetails.isChicagoLocalPickup
+    ? `<p style="color: #92400e; background-color: #fef3c7; border: 1px solid #f59e0b; padding: 10px 12px; border-radius: 6px; font-size: 13px; margin: 10px 0;"><b>BACKEND SHIPPING LOGIC (CHICAGO LOCAL PICKUP):</b> ${orderDetails.pickupAddressNote || 'Shipping location is Chicago — all pickups are local and the address will be sent when the order is confirmed.'}</p>`
+    : '';
+
   const ownerBodyHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; color: #333;">
       <h2 style="color: #1F2937; border-bottom: 2px solid #8B5E34; padding-bottom: 10px; margin-top: 0;">New Order Booking Received!</h2>
       <p style="font-size: 14px;">A new catering event has been booked. Details below:</p>
-      
+      ${chicagoPickupOwnerHtml}
       <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin: 15px 0;">
         <p style="margin: 4px 0; font-size: 13px;"><b>Order ID:</b> ${orderDetails.id}</p>
         <p style="margin: 4px 0; font-size: 13px;"><b>Customer Name:</b> ${orderDetails.customerName}</p>
@@ -99,6 +119,7 @@ export const sendOrderEmails = async (
         <p style="margin: 4px 0; font-size: 13px;"><b>Fulfillment:</b> ${orderDetails.orderType.toUpperCase()}</p>
         <p style="margin: 4px 0; font-size: 13px;"><b>Order Date & Time:</b> <b>${orderDetails.eventDate} @ ${orderDetails.eventTime}</b></p>
         ${deliveryAddressHtml}
+        ${interacRefHtml}
         
         <h4 style="border-top: 1px dashed #e5e7eb; padding-top: 10px; margin-bottom: 8px;">Ordered Items:</h4>
         <pre style="font-family: monospace; font-size: 12px; white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #e5e7eb; margin: 0;">${orderDetails.itemsText}</pre>
@@ -416,7 +437,10 @@ export const createCalendarEvent = async (
     orderTime: string;
     orderType: string;
     deliveryAddress?: string;
+    interacRefNumber?: string;
     specialInstructions?: string;
+    isChicagoLocalPickup?: boolean;
+    pickupAddressNote?: string;
   }
 ) => {
   const startDateTimeStr = `${order.orderDate}T${order.orderTime}:00`;
@@ -429,7 +453,9 @@ export const createCalendarEvent = async (
   const description = [
     `Order Reference: ${order.id}`,
     `Fulfillment: ${order.orderType.toUpperCase()}`,
+    order.isChicagoLocalPickup ? `Chicago Local Pickup: ${order.pickupAddressNote || 'Local pickup — send address upon order confirmation.'}` : '',
     order.deliveryAddress ? `Address: ${order.deliveryAddress}` : '',
+    order.interacRefNumber ? `Interac Ref Number: ${order.interacRefNumber}` : '',
     `Items Ordered: ${order.items}`,
     order.specialInstructions ? `Special Instructions: ${order.specialInstructions}` : ''
   ].filter(Boolean).join('\n');

@@ -17,6 +17,12 @@ interface Order {
   items: string;
   amountPaid: number;
   paymentStatus: string;
+  interacRefNumber?: string;
+  isChinChinOnly?: boolean;
+  shippingFee?: number;
+  isChicagoLocalPickup?: boolean;
+  pickupAddressNote?: string;
+  deliveryAddress?: string;
   syncStatus: string;
   syncError?: string;
   createdAt: number;
@@ -467,6 +473,21 @@ export default function AdminDashboard() {
                                   <p className="mt-1"><b>Name:</b> {order.customerName}</p>
                                   <p className="mt-1"><b>Email:</b> {order.customerEmail}</p>
                                   <p className="mt-1"><b>Phone:</b> {order.customerPhone}</p>
+                                  {order.deliveryAddress && (
+                                    <p className="mt-1"><b>Address:</b> {order.deliveryAddress}</p>
+                                  )}
+                                  {typeof order.shippingFee === 'number' && (
+                                    <p className="mt-1"><b>Shipping Charge:</b> {order.shippingFee === 0 ? 'FREE ($0.00)' : `$${order.shippingFee.toFixed(2)}`}</p>
+                                  )}
+                                  {order.isChicagoLocalPickup && (
+                                    <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
+                                      <p className="font-bold text-[11px] uppercase">Chicago Local Pickup (Backend)</p>
+                                      <p className="text-[11px] mt-0.5">{order.pickupAddressNote || 'All pickups are local; pickup address will be sent when order is confirmed.'}</p>
+                                    </div>
+                                  )}
+                                  {order.interacRefNumber && (
+                                    <p className="mt-1"><b>Interac Ref Number:</b> <span className="font-mono font-semibold text-slate-800">{order.interacRefNumber}</span></p>
+                                  )}
                                   <p className="mt-1"><b>Logged In System:</b> {formattedDate}</p>
                                 </div>
                                 <div>

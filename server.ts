@@ -29,21 +29,75 @@ async function startServer() {
   };
   const memOrders: any[] = [];
 
+  // Circuit-breaker for Firestore when unprovisioned/unreachable in Node.js:
+  // Firebase Web SDK's setDoc/updateDoc queue offline writes indefinitely without rejecting.
+  let firestoreOfflineUntil = 0;
+  let firestoreCheckedAt = 0;
+
+  function stripUndefined<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  async function runFirestoreOp<T>(op: () => Promise<T>, timeoutMs = 1500, isWrite = false): Promise<T> {
+    if (Date.now() < firestoreOfflineUntil) {
+      throw new Error("Firestore temporarily bypassed (offline)");
+    }
+
+    // Before queuing any write, verify Firestore is reachable via a read so the SDK doesn't
+    // open an endless background Write retry stream if the database isn't provisioned.
+    if (isWrite && Date.now() - firestoreCheckedAt > 60_000) {
+      await runFirestoreOp(() => getDoc(doc(db, "settings", "google_workspace")), timeoutMs, false);
+      firestoreCheckedAt = Date.now();
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const result = await Promise.race([
+        op(),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("Firestore operation timed out")), timeoutMs);
+        })
+      ]);
+      firestoreCheckedAt = Date.now();
+      return result;
+    } catch (err: any) {
+      const msg = String(err?.message || err || "");
+      if (
+        msg.includes("timed out") ||
+        msg.includes("offline") ||
+        msg.includes("UNAVAILABLE") ||
+        msg.includes("NOT_FOUND") ||
+        msg.includes("PERMISSION_DENIED") ||
+        err?.code === "not-found" ||
+        err?.code === "unavailable"
+      ) {
+        firestoreOfflineUntil = Date.now() + 5 * 60_000;
+      }
+      throw err;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
   /**
    * Helper function to check and retrieve the Google Access Token from Firestore (with memory fallback).
    */
   async function getGoogleToken() {
+    if (memSettings.accessToken && memSettings.expiresAt) {
+      const isMemExpired = Date.now() + 5 * 60 * 1000 > memSettings.expiresAt;
+      if (!isMemExpired) {
+        return {
+          accessToken: memSettings.accessToken,
+          email: memSettings.email,
+          spreadsheetId: memSettings.spreadsheetId || null
+        };
+      }
+    }
+
     try {
       const docRef = doc(db, "settings", "google_workspace");
-      const docSnap = await getDoc(docRef);
+      const docSnap = await runFirestoreOp(() => getDoc(docRef));
       if (!docSnap.exists()) {
-        if (memSettings.accessToken) {
-          return {
-            accessToken: memSettings.accessToken,
-            email: memSettings.email,
-            spreadsheetId: memSettings.spreadsheetId || null
-          };
-        }
         return null;
       }
       const data = docSnap.data();
@@ -58,13 +112,6 @@ async function startServer() {
         spreadsheetId: data.spreadsheetId || null
       };
     } catch (e) {
-      if (memSettings.accessToken) {
-        return {
-          accessToken: memSettings.accessToken,
-          email: memSettings.email,
-          spreadsheetId: memSettings.spreadsheetId || null
-        };
-      }
       return null;
     }
   }
@@ -79,7 +126,7 @@ async function startServer() {
       memSettings.spreadsheetId = newId;
       try {
         const docRef = doc(db, "settings", "google_workspace");
-        await setDoc(docRef, { spreadsheetId: newId }, { merge: true });
+        await runFirestoreOp(() => setDoc(docRef, { spreadsheetId: newId }, { merge: true }), 1500, true);
       } catch (e) {
         // Fallback handled
       }
@@ -108,7 +155,10 @@ async function startServer() {
       orderTime: orderDetails.orderTime,
       orderType: orderDetails.orderType,
       deliveryAddress: orderDetails.deliveryAddress,
-      specialInstructions: orderDetails.specialInstructions
+      interacRefNumber: orderDetails.interacRefNumber,
+      specialInstructions: orderDetails.specialInstructions,
+      isChicagoLocalPickup: orderDetails.isChicagoLocalPickup,
+      pickupAddressNote: orderDetails.pickupAddressNote
     });
 
     // D. Dispatch customer receipt & owner notice via Gmail
@@ -119,7 +169,7 @@ async function startServer() {
   app.get("/api/admin/status", async (req, res) => {
     try {
       const docRef = doc(db, "settings", "google_workspace");
-      const docSnap = await getDoc(docRef);
+      const docSnap = await runFirestoreOp(() => getDoc(docRef));
       if (!docSnap.exists()) {
         return res.json({ 
           connected: !!(memSettings.accessToken && memSettings.expiresAt && Date.now() < memSettings.expiresAt), 
@@ -157,12 +207,12 @@ async function startServer() {
 
       try {
         const docRef = doc(db, "settings", "google_workspace");
-        await setDoc(docRef, {
+        await runFirestoreOp(() => setDoc(docRef, {
           accessToken,
           email,
           expiresAt,
           spreadsheetId: req.body.spreadsheetId || null
-        }, { merge: true });
+        }, { merge: true }), 1500, true);
       } catch (e) {
         // Fallback stored in memory
       }
@@ -181,11 +231,11 @@ async function startServer() {
 
       try {
         const docRef = doc(db, "settings", "google_workspace");
-        await setDoc(docRef, {
+        await runFirestoreOp(() => setDoc(docRef, {
           accessToken: null,
           email: null,
           expiresAt: null
-        }, { merge: true });
+        }, { merge: true }), 1500, true);
       } catch (e) {
         // Fallback updated
       }
@@ -200,7 +250,7 @@ async function startServer() {
     try {
       const ordersRef = collection(db, "orders");
       const q = query(ordersRef, orderBy("createdAt", "desc"), limit(50));
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await runFirestoreOp(() => getDocs(q));
       const orders: any[] = [];
       querySnapshot.forEach((docSnap) => {
         orders.push(docSnap.data());
@@ -217,24 +267,45 @@ async function startServer() {
   app.post("/api/admin/sync-order", async (req, res) => {
     try {
       const { orderId } = req.body;
+      let orderData: any = memOrders.find(o => o.id === orderId) || null;
       const orderDocRef = doc(db, "orders", orderId);
-      const orderSnap = await getDoc(orderDocRef);
-      if (!orderSnap.exists()) {
+
+      if (!orderData) {
+        try {
+          const orderSnap = await runFirestoreOp(() => getDoc(orderDocRef));
+          if (orderSnap.exists()) {
+            orderData = orderSnap.data();
+          }
+        } catch (e) {
+          // Fallback already checked memOrders
+        }
+      }
+
+      if (!orderData) {
         return res.status(404).json({ error: "Order not found" });
       }
       
-      const orderData = orderSnap.data();
       const tokenInfo = await getGoogleToken();
       if (!tokenInfo) {
         return res.status(400).json({ error: "Google Workspace credentials are offline or expired. Please re-authenticate first." });
       }
 
       await syncOrderToWorkspace(tokenInfo.accessToken, orderData, tokenInfo.spreadsheetId);
-      await updateDoc(orderDocRef, {
-        syncStatus: "synced",
-        syncedAt: Date.now(),
-        syncError: null
-      });
+
+      const memIdx = memOrders.findIndex(o => o.id === orderId);
+      if (memIdx !== -1) {
+        memOrders[memIdx].syncStatus = "synced";
+        memOrders[memIdx].syncedAt = Date.now();
+        memOrders[memIdx].syncError = null;
+      }
+
+      try {
+        await runFirestoreOp(() => updateDoc(orderDocRef, {
+          syncStatus: "synced",
+          syncedAt: Date.now(),
+          syncError: null
+        }), 1500, true);
+      } catch (e) {}
 
       res.json({ status: "ok" });
     } catch (error: any) {
@@ -243,18 +314,79 @@ async function startServer() {
     }
   });
 
+  // Helper: Backend shipping & Chicago local pickup calculation for Chin Chin orders
+  function calculateChinChinShippingBackend(orderDetails: any) {
+    if (!orderDetails?.isChinChinOnly) {
+      return {};
+    }
+
+    const subtotal = Number(orderDetails.subtotal) || 0;
+    // - Free shipping for all orders over $100 ($100+)
+    // - Shipping charges of $10 apply for Orders < $100
+    const shippingFee = subtotal > 0 && subtotal < 100 ? 10.0 : 0.0;
+    const totalAmount = subtotal + shippingFee;
+
+    const locationText = [
+      orderDetails.shippingCity,
+      orderDetails.deliveryAddress,
+      orderDetails.shippingState
+    ]
+      .filter(Boolean)
+      .join(' ');
+    const isChicagoLocation = /\bchicago\b/i.test(locationText);
+
+    if (isChicagoLocation) {
+      const pickupAddressNote =
+        'Shipping location is Chicago: all pickups will be local and the address will be sent when your order is confirmed.';
+      return {
+        orderType: 'pickup',
+        subtotal,
+        shippingFee,
+        totalAmount,
+        isChicagoLocalPickup: true,
+        pickupAddressNote,
+        backendShippingLogic: {
+          isChinChinOnly: true,
+          subtotal,
+          shippingFee,
+          freeShippingQualified: subtotal >= 100,
+          isChicagoLocation: true,
+          fulfillmentMode: 'local_pickup',
+          pickupAddressNote
+        }
+      };
+    }
+
+    return {
+      subtotal,
+      shippingFee,
+      totalAmount,
+      isChicagoLocalPickup: false,
+      backendShippingLogic: {
+        isChinChinOnly: true,
+        subtotal,
+        shippingFee,
+        freeShippingQualified: subtotal >= 100,
+        isChicagoLocation: false,
+        fulfillmentMode: 'shipping'
+      }
+    };
+  }
+
   // API Route: Processes incoming order submissions from customers
   app.post("/api/submit-order", async (req, res) => {
     try {
       const orderDetails = req.body;
       const orderId = orderDetails.id || `ISC-${Date.now()}`;
-      
-      const newOrder = {
+      const shippingBackendMeta = calculateChinChinShippingBackend(orderDetails);
+
+      const newOrder = stripUndefined({
         ...orderDetails,
+        ...shippingBackendMeta,
         id: orderId,
         syncStatus: "pending",
         createdAt: Date.now()
-      };
+      });
 
       // Push to in-memory orders
       memOrders.unshift(newOrder);
@@ -262,28 +394,28 @@ async function startServer() {
       // 1. Log order to database first so customer records are never lost
       try {
         const orderDocRef = doc(db, "orders", orderId);
-        await setDoc(orderDocRef, newOrder);
+        await runFirestoreOp(() => setDoc(orderDocRef, newOrder), 1500, true);
       } catch (dbErr) {
-        // Firestore unprovisioned fallback handled by memOrders
+        // Firestore unprovisioned/offline fallback handled by memOrders
       }
 
       // 2. Fetch active Google access token
       const tokenInfo = await getGoogleToken();
       if (!tokenInfo) {
         // Fallback: order is saved for manual sync
-        try {
-          const orderDocRef = doc(db, "orders", orderId);
-          await updateDoc(orderDocRef, {
-            syncStatus: "failed",
-            syncError: "Google connection expired. Saved for later manual sync by owner."
-          });
-        } catch (e) {}
-        
         const memIdx = memOrders.findIndex(o => o.id === orderId);
         if (memIdx !== -1) {
           memOrders[memIdx].syncStatus = "failed";
           memOrders[memIdx].syncError = "Google connection expired. Saved for later manual sync by owner.";
         }
+
+        try {
+          const orderDocRef = doc(db, "orders", orderId);
+          await runFirestoreOp(() => updateDoc(orderDocRef, {
+            syncStatus: "failed",
+            syncError: "Google connection expired. Saved for later manual sync by owner."
+          }), 1500, true);
+        } catch (e) {}
 
         return res.json({
           status: "ok",
@@ -295,14 +427,6 @@ async function startServer() {
       // 3. Perform asynchronous Workspace Sync
       try {
         await syncOrderToWorkspace(tokenInfo.accessToken, newOrder, tokenInfo.spreadsheetId);
-        try {
-          const orderDocRef = doc(db, "orders", orderId);
-          await updateDoc(orderDocRef, {
-            syncStatus: "synced",
-            syncedAt: Date.now(),
-            syncError: null
-          });
-        } catch (e) {}
 
         const memIdx = memOrders.findIndex(o => o.id === orderId);
         if (memIdx !== -1) {
@@ -310,6 +434,15 @@ async function startServer() {
           memOrders[memIdx].syncedAt = Date.now();
           memOrders[memIdx].syncError = null;
         }
+
+        try {
+          const orderDocRef = doc(db, "orders", orderId);
+          await runFirestoreOp(() => updateDoc(orderDocRef, {
+            syncStatus: "synced",
+            syncedAt: Date.now(),
+            syncError: null
+          }), 1500, true);
+        } catch (e) {}
 
         res.json({ status: "ok", synced: true });
       } catch (syncErr: any) {
@@ -319,23 +452,23 @@ async function startServer() {
           memSettings.expiresAt = 0;
           try {
             const docRef = doc(db, "settings", "google_workspace");
-            await updateDoc(docRef, { expiresAt: 0 });
+            await runFirestoreOp(() => updateDoc(docRef, { expiresAt: 0 }), 1500, true);
           } catch (e) {}
         }
-
-        try {
-          const orderDocRef = doc(db, "orders", orderId);
-          await updateDoc(orderDocRef, {
-            syncStatus: "failed",
-            syncError: syncErr.message || "Unknown Google Sync Error"
-          });
-        } catch (e) {}
 
         const memIdx = memOrders.findIndex(o => o.id === orderId);
         if (memIdx !== -1) {
           memOrders[memIdx].syncStatus = "failed";
           memOrders[memIdx].syncError = syncErr.message || "Unknown Google Sync Error";
         }
+
+        try {
+          const orderDocRef = doc(db, "orders", orderId);
+          await runFirestoreOp(() => updateDoc(orderDocRef, {
+            syncStatus: "failed",
+            syncError: syncErr.message || "Unknown Google Sync Error"
+          }), 1500, true);
+        } catch (e) {}
 
         res.json({
           status: "ok",

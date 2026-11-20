@@ -16,8 +16,8 @@ import {
   ChefHat, Beef, Soup, Cookie, Croissant, Utensils, CircleDot,
   Plus, Minus, Trash2, CreditCard, Send, CheckCircle, Clock,
   Calendar, MapPin, Sparkles, Phone, Mail, User, Check,
-  ChevronDown, ChevronUp, Copy, Printer, CheckSquare, Square,
-  ShoppingBag, ClipboardCheck, ArrowRight, X, AlertCircle, LogOut,
+  ChevronDown, ChevronUp, Copy, Printer,
+  ShoppingBag, ArrowRight, X, AlertCircle, LogOut,
   Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,6 +31,7 @@ import { MENU_ITEMS, CATEGORIES } from './data';
 import logoUrl from './assets/images/Logo/IsaiahSixty Logo.png';
 import AdminDashboard from './components/AdminDashboard';
 import ChinChinSubpage from './components/ChinChinSubpage';
+import ChinChinCheckoutPage from './components/ChinChinCheckoutPage';
 
 export default function App() {
   // --- STATE MANAGEMENT ---
@@ -39,6 +40,8 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   // Active state to track if we are viewing the dedicated Chin Chin showcase subpage
   const [isChinChinPage, setIsChinChinPage] = useState(false);
+  // Active state to track if we are viewing the dedicated Chin Chin checkout page
+  const [isChinChinCheckoutPage, setIsChinChinCheckoutPage] = useState(false);
 
   useEffect(() => {
     // Monitor both sub-directory pathname and window hash for route matching
@@ -50,6 +53,11 @@ export default function App() {
                          window.location.hash === '#chinchin' || 
                          window.location.hash === '#/chinchin';
       setIsChinChinPage(isChinChin);
+
+      const isChinChinCheckout = window.location.pathname === '/chinchin-checkout' ||
+                                 window.location.hash === '#chinchin-checkout' ||
+                                 window.location.hash === '#/chinchin-checkout';
+      setIsChinChinCheckoutPage(isChinChinCheckout);
     };
 
     handleLocationChange();
@@ -88,6 +96,7 @@ export default function App() {
   const [eventTime, setEventTime] = useState('');
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('pickup');
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [interacRefNumber, setInteracRefNumber] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
 
   // Payment Tracking States (Mandatory requirement)
@@ -134,6 +143,42 @@ export default function App() {
       isCustomPrice: activePortion.isCustomPrice ?? item.isCustomPrice
     };
     return { resolvedItem, activePortionId };
+  };
+
+  // Detect whether the cart currently contains ONLY Chin Chin items
+  const hasMainMenuItems = useMemo(() => {
+    return cart.some(item => !item.menuItem.id.startsWith('chops-chin-chin'));
+  }, [cart]);
+
+  const isChinChinOnlyOrder = useMemo(() => {
+    return cart.length > 0 && !hasMainMenuItems;
+  }, [cart, hasMainMenuItems]);
+
+  // If any main menu item is added while on the secondary Chin Chin checkout page,
+  // automatically switch back to the default catering checkout page.
+  useEffect(() => {
+    if (isChinChinCheckoutPage && hasMainMenuItems) {
+      window.location.hash = '';
+      setIsChinChinCheckoutPage(false);
+    }
+  }, [isChinChinCheckoutPage, hasMainMenuItems]);
+
+  // Helper to open the appropriate checkout page based on cart contents
+  const openCheckoutPage = () => {
+    setIsCartDropdownOpen(false);
+    if (cart.length > 0 && cart.every(item => item.menuItem.id.startsWith('chops-chin-chin'))) {
+      window.location.hash = '#chinchin-checkout';
+      setIsChinChinPage(false);
+      setIsChinChinCheckoutPage(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.location.hash = '';
+      setIsChinChinPage(false);
+      setIsChinChinCheckoutPage(false);
+      setTimeout(() => {
+        document.getElementById('checkout_and_tracking')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
   };
 
   // --- DYNAMIC CALCULATIONS (MEMOIZED) ---
@@ -240,23 +285,6 @@ export default function App() {
     setTimeout(() => setCopiedEmail(false), 2500);
   };
 
-  // Handles dynamic changes in deposit/full payment checkboxes
-  const handleDepositChange = (checked: boolean) => {
-    setIsDepositPaid(checked);
-    // If deposit is turned off, full payment cannot logically remain active
-    if (!checked) {
-      setIsFullPaymentMade(false);
-    }
-  };
-
-  const handleFullPaymentChange = (checked: boolean) => {
-    setIsFullPaymentMade(checked);
-    // If full payment is checked, deposit is automatically checked
-    if (checked) {
-      setIsDepositPaid(true);
-    }
-  };
-
   // Formats credit card input with spaces every 4 digits
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
@@ -321,7 +349,7 @@ export default function App() {
     let finalPaymentMethod: 'card' | 'interac' | null = null;
     if (cardData.cardNumber.trim().length > 12) {
       finalPaymentMethod = 'card';
-    } else if (isInteracExpanded) {
+    } else if (isInteracExpanded || interacRefNumber.trim()) {
       finalPaymentMethod = 'interac';
     }
 
@@ -342,6 +370,7 @@ export default function App() {
       isDepositPaid,
       isFullPaymentMade,
       paymentMethod: finalPaymentMethod,
+      interacRefNumber: interacRefNumber.trim() || undefined,
       cardDetails: cardData
     };
 
@@ -441,6 +470,11 @@ PAYMENT TRACKING STATUS:
 Paid to Date: $${billingSummary.totalPaid.toFixed(2)} CAD
 Remaining Balance: $${billingSummary.remainingBalance.toFixed(2)} CAD
 Payment Route: ${submittedOrder.paymentMethod ? submittedOrder.paymentMethod.toUpperCase() : 'None Specified'}
+${submittedOrder.interacRefNumber ? `Interac Ref Number: ${submittedOrder.interacRefNumber}\n` : ''}-----------------------------------------
+ISAIAH SIXTY CREATIONS ORDERING NOTICE:
+- We require a minimum 48-hour advanced booking for large tray sizes.
+- Estimated items (*) like swallow rolls and plain rice trays are custom adjustable to cater to custom crowd guest count requests.
+- Please explicitly state allergies or spices customization requests inside the Special Instructions chef box.
 =========================================
 Thank you for booking Isaiah Sixty Creations!
 We turn your catering events into golden culinary moments.
@@ -464,6 +498,7 @@ We turn your catering events into golden culinary moments.
     setEventDate('');
     setEventTime('');
     setDeliveryAddress('');
+    setInteracRefNumber('');
     setSpecialInstructions('');
     setIsDepositPaid(false);
     setIsFullPaymentMade(false);
@@ -480,6 +515,30 @@ We turn your catering events into golden culinary moments.
     return <AdminDashboard />;
   }
 
+  if (isChinChinCheckoutPage && !hasMainMenuItems) {
+    return (
+      <ChinChinCheckoutPage
+        cart={cart}
+        onAddToCart={handleAddToCart}
+        onRemoveFromCart={handleRemoveFromCart}
+        onDeleteLineItem={handleDeleteLineItem}
+        onClearCart={() => setCart([])}
+        onBackToChinChin={() => {
+          window.location.hash = '#chinchin';
+          setIsChinChinCheckoutPage(false);
+          setIsChinChinPage(true);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onBackToMainMenu={() => {
+          window.location.hash = '';
+          setIsChinChinCheckoutPage(false);
+          setIsChinChinPage(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
   if (isChinChinPage) {
     return (
       <ChinChinSubpage
@@ -491,6 +550,7 @@ We turn your catering events into golden culinary moments.
           setIsChinChinPage(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+        onCheckout={openCheckoutPage}
       />
     );
   }
@@ -554,10 +614,9 @@ We turn your catering events into golden culinary moments.
                 />
               </div>
               <div className="text-center md:text-left">
-                {/* Brand name and catering badge */}
+                {/* Brand name */}
                 <h1 className="font-display font-bold text-2xl tracking-tight text-[#1F2937] flex flex-wrap items-center gap-2 justify-center md:justify-start">
                   <span>Isaiah Sixty Creations</span>
-                  <span className="text-[#8B5E34] text-[11px] font-sans font-semibold px-2.5 py-0.5 rounded-full bg-[#fdfbf7] border border-[#f5efeb] whitespace-nowrap">Catering Service</span>
                 </h1>
                 {/* Custom requested italicized subtext explaining business motivation */}
                 <p className="text-xs text-gray-500 mt-1 font-sans italic">Your satisfaction keeps us in business</p>
@@ -588,11 +647,11 @@ We turn your catering events into golden culinary moments.
                     setIsChinChinPage(true);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="flex items-center gap-1.5 bg-[#FAF5EE] text-[#8B5E34] border border-[#E8DAC6] hover:bg-[#F2E8DA] px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer group"
-                  title="View Chin Chin subpage with photo galleries for 300g, 700g, and 1500g"
+                  className="flex items-center gap-1.5 bg-[#FAF5EE] text-[#8B5E34] border border-[#E8DAC6] hover:bg-[#F2E8DA] px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  title="View Chin Chin sizes ($17.50, $27.50, $48.50) and photo gallery"
                 >
-                  <Cookie className="w-3.5 h-3.5 text-[#8B5E34] group-hover:scale-110 transition-transform" />
-                  <span>Chin Chin (300g, 700g, 1500g)</span>
+                  <Cookie className="w-3.5 h-3.5 text-[#8B5E34]" />
+                  <span>Order Chin Chin here</span>
                 </button>
 
                 {/* Small Cart Active Button */}
@@ -612,23 +671,62 @@ We turn your catering events into golden culinary moments.
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50"
+                        className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50"
                       >
-                        <h4 className="font-bold text-gray-900 mb-3 text-sm">Your Order</h4>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-bold text-gray-900 text-sm">Your Order</h4>
+                          <span className="text-[11px] text-gray-500">{cart.reduce((s, i) => s + i.quantity, 0)} items</span>
+                        </div>
+
+                        {/* Order Only Chin Chin button */}
+                        <div className="mb-3 p-2.5 bg-[#FAF5EE] rounded-xl border border-[#DFCBB2]/60">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="text-[11px] text-[#4b2f1d]">
+                              <span className="font-bold block text-xs">Want to order only Chin Chin?</span>
+                              <span className="text-gray-500 text-[10px]">300g, 700g, 1500g</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCartDropdownOpen(false);
+                                window.location.hash = '#chinchin';
+                                setIsChinChinPage(true);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-[#8B5E34] hover:bg-[#724a25] text-white text-[11px] font-bold transition-colors whitespace-nowrap cursor-pointer shadow-xs flex items-center gap-1"
+                            >
+                              <span>Chin Chin Page</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+
                         {cart.length === 0 ? (
-                          <p className="text-gray-500 text-xs">Your cart is empty.</p>
+                          <div className="text-center py-2">
+                            <p className="text-gray-500 text-xs">Your cart is currently empty.</p>
+                          </div>
                         ) : (
-                          <div className="space-y-2 max-h-60 overflow-y-auto">
+                          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                             {cart.map(item => (
-                              <div key={item.menuItem.id} className="flex justify-between items-center text-xs">
-                                <span>{item.menuItem.name} x {item.quantity}</span>
-                                <span>${(item.menuItem.price * item.quantity).toFixed(2)}</span>
+                              <div key={item.menuItem.id} className="flex justify-between items-center text-xs py-1 border-b border-gray-50">
+                                <span className="text-gray-700 truncate pr-2">{item.menuItem.name} × {item.quantity}</span>
+                                <span className="font-mono font-semibold text-gray-900">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
                               </div>
                             ))}
-                            <div className="border-t pt-2 mt-2 font-bold flex justify-between text-sm">
+                            <div className="border-t pt-2 mt-2 font-bold flex justify-between text-sm text-gray-900">
                               <span>Total</span>
-                              <span>${billingSummary.total.toFixed(2)}</span>
+                              <span>${billingSummary.total.toFixed(2)} CAD</span>
                             </div>
+                            {isChinChinOnlyOrder && (
+                              <button
+                                type="button"
+                                onClick={openCheckoutPage}
+                                className="w-full mt-2 py-2 px-3 rounded-lg bg-[#8B5E34] hover:bg-[#724a25] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                              >
+                                <span>Open Chin Chin Checkout</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         )}
                       </motion.div>
@@ -641,18 +739,14 @@ We turn your catering events into golden culinary moments.
         </div>
       </header>
 
-      {/* DYNAMIC PROMOTIONAL HERO */}
-      <section id="banner_hero" className="bg-gradient-to-r from-[#1f2937] via-[#2d251e] to-[#1f2937] text-white py-14 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#8b5e34_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <span className="text-[#a67341] font-display font-semibold text-xs tracking-widest uppercase bg-[#8B5E34]/10 px-3.5 py-1 rounded-full border border-[#8B5E34]/20">
-            Isaiah Sixty Creations Special
-          </span>
-          <h2 className="text-3xl md:text-4xl font-serif font-semibold mt-4 tracking-tight">
-            Order Exquisite West African & Continental Catering
+      {/* SIMPLE CLEAN HERO */}
+      <section id="banner_hero" className="bg-[#1f2937] text-white py-10 px-4 text-center">
+        <div className="max-w-4xl mx-auto space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            West African Catering & Party Food
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto mt-3 text-sm md:text-base font-light leading-relaxed">
-            Select your premium meats, pastries, traditional soups, and small chops. Simply compile your culinary cart and configure your payment tracking in the sidebar below.
+          <p className="text-gray-300 max-w-xl mx-auto text-sm">
+            Choose your dishes, pick delivery or pickup, and place your order below.
           </p>
         </div>
       </section>
@@ -763,11 +857,6 @@ We turn your catering events into golden culinary moments.
                                 </div>
                               </>
                             )}
-                            
-                            {/* Watermark badge identifying the representation plate */}
-                            <span className="absolute bottom-2 right-2 text-[8px] font-mono tracking-widest text-white/90 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm uppercase">
-                              {item.category} Showcase
-                            </span>
                           </div>
 
                           <div className="flex items-center justify-between pt-1">
@@ -788,8 +877,8 @@ We turn your catering events into golden culinary moments.
                             {item.description}
                           </p>
 
-                          {/* SELECTABLE PORTIONS (if item has portion variants) */}
-                          {item.portions && item.portions.length > 0 && (
+                          {/* SELECTABLE PORTIONS (if item has portion variants, excluding Chin Chin which uses its subpage) */}
+                          {item.id !== 'chops-chin-chin' && item.portions && item.portions.length > 0 && (
                             <div className="pt-2 border-t border-gray-50">
                               <div className="flex items-center justify-between mb-1.5">
                                 <span className="text-[11px] font-semibold text-gray-700">Select Portion Size:</span>
@@ -839,12 +928,12 @@ We turn your catering events into golden culinary moments.
                                 setIsChinChinPage(true);
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className="w-full mt-2.5 py-2 px-3 rounded-xl bg-gradient-to-r from-[#FAF5EE] to-[#F3E7D5] hover:from-[#F3E7D5] hover:to-[#EBDAC3] border border-[#DFCBB2] text-[#8B5E34] text-xs font-bold transition-all flex items-center justify-between shadow-2xs group-hover:border-[#8B5E34]/50 cursor-pointer"
-                              title="Click to open dedicated Chin Chin subpage with photo galleries for 300g, 700g, and 1500g"
+                              className="mx-auto mt-2.5 py-1.5 px-3.5 rounded-lg bg-[#FAF5EE] hover:bg-[#F3E7D5] border border-[#DFCBB2] text-[#8B5E34] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 w-fit cursor-pointer"
+                              title="Click to view Chin Chin sizes ($17.50, $27.50, $48.50) and photos"
                             >
                               <div className="flex items-center gap-1.5">
                                 <ImageIcon className="w-3.5 h-3.5 text-[#8B5E34]" />
-                                <span>Chin Chin Subpage & Galleries (300g, 700g, 1500g)</span>
+                                <span>Click to Order</span>
                               </div>
                               <ArrowRight className="w-3.5 h-3.5 text-[#8B5E34]" />
                             </button>
@@ -863,34 +952,36 @@ We turn your catering events into golden culinary moments.
                           </div>
 
                           {/* Interactive add state controller with optimized mobile touch targets */}
-                          {quantityInCart > 0 ? (
-                            <div className="flex items-center bg-[#fdfbf7] border border-[#f5efeb] rounded-lg p-1 gap-3 sm:gap-2">
-                              <button
-                                onClick={() => handleRemoveFromCart(resolvedItem.id)}
-                                className="w-10 h-10 sm:w-7 sm:h-7 rounded-md bg-white border border-[#f5efeb] text-[#8B5E34] flex items-center justify-center hover:bg-gray-100 transition-colors active:scale-90 duration-75"
-                                title="Remove one"
-                              >
-                                <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                              </button>
-                              <span className="font-mono font-bold text-sm sm:text-xs text-[#8B5E34] min-w-5 sm:min-w-4 text-center">
-                                {quantityInCart}
-                              </span>
+                          {item.id !== 'chops-chin-chin' && (
+                            quantityInCart > 0 ? (
+                              <div className="flex items-center bg-[#fdfbf7] border border-[#f5efeb] rounded-lg p-1 gap-3 sm:gap-2">
+                                <button
+                                  onClick={() => handleRemoveFromCart(resolvedItem.id)}
+                                  className="w-10 h-10 sm:w-7 sm:h-7 rounded-md bg-white border border-[#f5efeb] text-[#8B5E34] flex items-center justify-center hover:bg-gray-100 transition-colors active:scale-90 duration-75"
+                                  title="Remove one"
+                                >
+                                  <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                                </button>
+                                <span className="font-mono font-bold text-sm sm:text-xs text-[#8B5E34] min-w-5 sm:min-w-4 text-center">
+                                  {quantityInCart}
+                                </span>
+                                <button
+                                  onClick={() => handleAddToCart(resolvedItem)}
+                                  className="w-10 h-10 sm:w-7 sm:h-7 rounded-md bg-[#8B5E34] text-white flex items-center justify-center hover:bg-[#a67341] transition-colors active:scale-90 duration-75"
+                                  title="Add another"
+                                >
+                                  <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
                               <button
                                 onClick={() => handleAddToCart(resolvedItem)}
-                                className="w-10 h-10 sm:w-7 sm:h-7 rounded-md bg-[#8B5E34] text-white flex items-center justify-center hover:bg-[#a67341] transition-colors active:scale-90 duration-75"
-                                title="Add another"
+                                className="px-4.5 py-2.5 sm:px-3 sm:py-1.5 text-xs font-semibold sm:font-medium rounded-lg bg-[#8B5E34] hover:bg-[#a67341] text-white transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 duration-100 cursor-pointer"
                               >
                                 <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                                Add to Cart
                               </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => handleAddToCart(resolvedItem)}
-                              className="px-4.5 py-2.5 sm:px-3 sm:py-1.5 text-xs font-semibold sm:font-medium rounded-lg bg-[#8B5E34] hover:bg-[#a67341] text-white transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 duration-100 cursor-pointer"
-                            >
-                              <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                              Add to Cart
-                            </button>
+                            )
                           )}
                         </div>
                       </motion.div>
@@ -932,6 +1023,29 @@ We turn your catering events into golden culinary moments.
                 </div>
               </div>
 
+              {/* BUTTON FOR USERS WHO WANT TO ORDER ONLY CHIN CHIN */}
+              <div className="p-3 bg-[#FAF5EE] border-b border-[#DFCBB2]/70 flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 text-xs">
+                  <Cookie className="w-4 h-4 text-[#8B5E34] shrink-0" />
+                  <div>
+                    <span className="font-bold text-gray-900 block">Want to order only Chin Chin?</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCartDropdownOpen(false);
+                    window.location.hash = '#chinchin';
+                    setIsChinChinPage(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[#8B5E34] hover:bg-[#724a25] text-white text-xs font-bold transition-colors whitespace-nowrap cursor-pointer shadow-xs flex items-center gap-1.5"
+                >
+                  <span>Go to Chin Chin Page</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               {cart.length > 0 ? (
                 <div className="p-4 space-y-4">
                   {/* SCROLLABLE LINE ITEMS */}
@@ -940,11 +1054,8 @@ We turn your catering events into golden culinary moments.
                       <div key={item.menuItem.id} className="py-2.5 flex items-center justify-between gap-3 group">
                         <div className="min-w-0 flex-1">
                           <h5 className="text-xs font-semibold text-gray-800 truncate">{item.menuItem.name}</h5>
-                          <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
-                            <span className="font-medium text-[#8B5E34] bg-[#fdfbf7] px-1 py-0.2 rounded uppercase">
-                              {item.menuItem.category}
-                            </span>
-                            <span>({item.menuItem.unit})</span>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            ({item.menuItem.unit})
                           </p>
                         </div>
 
@@ -984,162 +1095,148 @@ We turn your catering events into golden culinary moments.
                     ))}
                   </div>
 
-                  {/* FULFILLMENT SELECTOR (DELIVERY OR PICKUP) */}
-                  <div className="pt-3 border-t border-gray-100">
-                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2 font-sans">
-                      Fulfillment Method
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setOrderType('pickup')}
-                        className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                          orderType === 'pickup'
-                            ? 'bg-[#8B5E34]/10 border-[#8B5E34] text-[#8B5E34]'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        Kitchen Pickup (Free)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOrderType('delivery')}
-                        className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                          orderType === 'delivery'
-                            ? 'bg-[#8B5E34]/10 border-[#8B5E34] text-[#8B5E34]'
-                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        <MapPin className="w-3.5 h-3.5" />
-                        Door Delivery ($25)
-                      </button>
+                  {isChinChinOnlyOrder ? (
+                    <div className="pt-3 border-t border-gray-100 space-y-3">
+                      <div className="p-3.5 bg-[#FAF5EE] border border-[#DFCBB2] rounded-xl space-y-2">
+                        <p className="text-xs font-bold text-[#4B2F1D]">
+                          Chin Chin-Only Order Detected
+                        </p>
+                        <p className="text-[11px] text-gray-600 leading-relaxed">
+                          Orders containing only Chin Chin use our dedicated Chin Chin Checkout page (free shipping on orders over $100; $10 shipping under $100). Add any dish from the main menu on the left to use the standard catering checkout instead.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={openCheckoutPage}
+                          className="w-full py-2.5 px-4 rounded-xl bg-[#8B5E34] hover:bg-[#724a25] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
+                        >
+                          <span>Continue to Chin Chin Checkout</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      {/* FULFILLMENT SELECTOR (DELIVERY OR PICKUP) */}
+                      <div className="pt-3 border-t border-gray-100">
+                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2 font-sans">
+                          Fulfillment Method
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setOrderType('pickup')}
+                            className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                              orderType === 'pickup'
+                                ? 'bg-[#8B5E34]/10 border-[#8B5E34] text-[#8B5E34]'
+                                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Clock className="w-3.5 h-3.5" />
+                            Kitchen Pickup (Free)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOrderType('delivery')}
+                            className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                              orderType === 'delivery'
+                                ? 'bg-[#8B5E34]/10 border-[#8B5E34] text-[#8B5E34]'
+                                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <MapPin className="w-3.5 h-3.5" />
+                            Door Delivery ($25)
+                          </button>
+                        </div>
+                      </div>
 
-                  {/* CONDITIONAL DELIVERY ADDRESS */}
-                  {orderType === 'delivery' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="space-y-1 pt-1"
-                    >
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        Delivery Target Address
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Suite #, Street name, City, Postal Code"
-                        value={deliveryAddress}
-                        onChange={(e) => setDeliveryAddress(e.target.value)}
-                        className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2 focus:outline-none focus:border-[#8B5E34]"
-                        required={orderType === 'delivery'}
-                      />
-                    </motion.div>
+                      {/* CONDITIONAL DELIVERY ADDRESS */}
+                      {orderType === 'delivery' && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="space-y-1 pt-1"
+                        >
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            Delivery Target Address
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Suite #, Street name, City, Postal Code"
+                            value={deliveryAddress}
+                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                            className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2 focus:outline-none focus:border-[#8B5E34]"
+                            required={orderType === 'delivery'}
+                          />
+                        </motion.div>
+                      )}
+                    </>
                   )}
                   
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-400 space-y-2">
+                <div className="p-8 text-center text-gray-400 space-y-3">
                   <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto stroke-1" />
-                  <p className="text-sm font-medium">Your catering order cart is empty.</p>
-                  <p className="text-xs text-gray-400">Click the small "+" icon on any menu dish on the left to begin compiling your feast.</p>
+                  <p className="text-sm font-medium text-gray-600">Your catering order cart is empty.</p>
+                  <p className="text-xs text-gray-400">Add dishes from the menu on the left, or order Chin Chin directly.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCartDropdownOpen(false);
+                      window.location.hash = '#chinchin';
+                      setIsChinChinPage(true);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#FAF5EE] hover:bg-[#F3E7D5] border border-[#DFCBB2] text-[#8B5E34] text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <Cookie className="w-3.5 h-3.5" />
+                    <span>Order Only Chin Chin</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* PAYMENT TRACKING SWITCHES - MANDATORY REQUIREMENT */}
-            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm space-y-4">
-              <h3 className="font-display font-bold text-sm text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
-                <ClipboardCheck className="w-4 h-4 text-[#8B5E34]" />
-                Catering Payment Status Tracker
+            {!isChinChinOnlyOrder && (
+              <>
+
+            {/* ORDER SUMMARY & BILLING BREAKDOWN */}
+            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm space-y-3">
+              <h3 className="font-display font-bold text-sm text-gray-900 flex items-center justify-between pb-2 border-b border-gray-100">
+                <span className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-[#8B5E34]" />
+                  Order Summary
+                </span>
+                <span className="text-xs font-normal text-gray-500">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)} {cart.reduce((sum, item) => sum + item.quantity, 0) === 1 ? 'item' : 'items'}
+                </span>
               </h3>
 
-              <div className="space-y-2.5">
-                {/* Checkbox 1: Deposit Paid */}
-                <div 
-                  onClick={() => handleDepositChange(!isDepositPaid)}
-                  className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
-                    isDepositPaid 
-                      ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
-                      : 'bg-gray-50/50 border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <button type="button" className="shrink-0 mt-0.5 text-emerald-600">
-                    {isDepositPaid ? (
-                      <CheckSquare className="w-4 h-4 fill-emerald-100" />
-                    ) : (
-                      <Square className="w-4 h-4" />
-                    )}
-                  </button>
-                  <div className="text-xs">
-                    <p className="font-bold flex items-center gap-1">
-                      Deposit Has Been Paid
-                    </p>
-                    {/* Information caption advising customers of the 80% minimum retainer deposit */}
-                    <p className="text-gray-500 text-[10px] mt-0.5 font-light">Toggle this checkmark once the initial 80% retainer has been processed for the kitchen booking.</p>
-                  </div>
-                </div>
-
-                {/* Checkbox 2: Full Payment Made */}
-                <div 
-                  onClick={() => handleFullPaymentChange(!isFullPaymentMade)}
-                  className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
-                    isFullPaymentMade 
-                      ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
-                      : 'bg-gray-50/50 border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <button type="button" className="shrink-0 mt-0.5 text-emerald-600">
-                    {isFullPaymentMade ? (
-                      <CheckSquare className="w-4 h-4 fill-emerald-100" />
-                    ) : (
-                      <Square className="w-4 h-4" />
-                    )}
-                  </button>
-                  <div className="text-xs">
-                    <p className="font-bold flex items-center gap-1">
-                      Full Payment Has Been Made
-                      {isFullPaymentMade && <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full font-medium">100% Cleared</span>}
-                    </p>
-                    <p className="text-gray-500 text-[10px] mt-0.5 font-light">Toggle this checkmark once the total catering fees have been settled completely.</p>
-                  </div>
-                </div>
-              </div>
-
               {/* LIVE BILLING BREAKDOWN */}
-              <div className="pt-3 border-t border-gray-100 space-y-1.5 text-xs">
-                <div className="flex justify-between text-gray-500">
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-gray-600">
                   <span>Cart Subtotal:</span>
-                  <span className="font-mono font-medium">${billingSummary.subtotal.toFixed(2)}</span>
+                  <span className="font-mono font-medium">${billingSummary.subtotal.toFixed(2)} CAD</span>
                 </div>
                 {orderType === 'delivery' && (
-                  <div className="flex justify-between text-gray-500">
+                  <div className="flex justify-between text-gray-600">
                     <span>Door Delivery Fee:</span>
-                    <span className="font-mono font-medium">$25.00</span>
+                    <span className="font-mono font-medium">$25.00 CAD</span>
                   </div>
                 )}
                 
-                <div className="flex justify-between font-bold text-gray-900 pt-1.5 border-t border-dashed border-gray-100 text-sm">
+                <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-dashed border-gray-200 text-sm">
                   <span>Total Catering Fees:</span>
-                  <span className="font-mono text-[#8B5E34]">${billingSummary.total.toFixed(2)}</span>
+                  <span className="font-mono text-[#8B5E34] text-base font-extrabold">${billingSummary.total.toFixed(2)} CAD</span>
                 </div>
 
-                {/* 80% Deposit calculation shown above outstanding balance due tag */}
-                <div className="flex justify-between text-xs bg-[#fdfbf7] border border-[#f5efeb] p-2 rounded-lg text-[#4b2f1d] font-bold mt-2">
-                  <span>80% Retainer Deposit Due:</span>
-                  <span className="font-mono">${billingSummary.deposit80.toFixed(2)} CAD</span>
+                <div className="flex justify-between text-xs bg-[#FAF5EE] border border-[#DFCBB2]/60 p-2.5 rounded-xl text-[#4b2f1d] font-semibold">
+                  <span>80% Retainer Deposit (to book):</span>
+                  <span className="font-mono font-bold">${billingSummary.deposit80.toFixed(2)} CAD</span>
                 </div>
 
-                {/* Tracking payments calculations */}
-                <div className="flex justify-between text-[11px] text-emerald-700 bg-emerald-50/50 p-2 rounded-lg">
-                  <span className="font-semibold">Paid Amount:</span>
-                  <span className="font-mono font-bold">-${billingSummary.totalPaid.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between text-xs bg-[#1F2937] text-white p-2.5 rounded-lg font-bold">
-                  <span>Outstanding Balance Due:</span>
-                  <span className="font-mono text-amber-300">${billingSummary.remainingBalance.toFixed(2)} CAD</span>
+                <div className="flex justify-between text-xs bg-gray-50 border border-gray-200 p-2.5 rounded-xl text-gray-700">
+                  <span>Remaining 20% Balance (due at event):</span>
+                  <span className="font-mono font-semibold">${(billingSummary.total * 0.2).toFixed(2)} CAD</span>
                 </div>
               </div>
             </div>
@@ -1438,6 +1535,20 @@ We turn your catering events into golden culinary moments.
                   </div>
                 </div>
 
+                {/* Interac Ref Number */}
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
+                    Interac Ref Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter Interac reference number (optional)"
+                    value={interacRefNumber}
+                    onChange={(e) => setInteracRefNumber(e.target.value)}
+                    className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg py-2 px-3 focus:outline-none focus:border-[#8B5E34]"
+                  />
+                </div>
+
                 {/* Special Instructions */}
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1 font-semibold text-gray-600">
@@ -1470,6 +1581,8 @@ We turn your catering events into golden culinary moments.
                 <ArrowRight className="w-4 h-4 animate-bounce-horizontal" />
               </button>
             </form>
+              </>
+            )}
 
           </section>
 
@@ -1539,6 +1652,12 @@ We turn your catering events into golden culinary moments.
                       <p className="text-gray-700 font-medium">{submittedOrder.deliveryAddress}</p>
                     </div>
                   )}
+                  {submittedOrder.interacRefNumber && (
+                    <div className="col-span-2 pt-1 border-t border-gray-100/60">
+                      <p className="text-gray-400 uppercase font-bold text-[9px] tracking-wider font-sans">Interac Ref Number</p>
+                      <p className="text-gray-800 font-mono font-semibold">{submittedOrder.interacRefNumber}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* ITEMIZED PRODUCTS SCROLL */}
@@ -1580,29 +1699,39 @@ We turn your catering events into golden culinary moments.
                     <span>Total Billable Amount:</span>
                     <span className="font-mono">${billingSummary.total.toFixed(2)} CAD</span>
                   </div>
-                  <div className="flex justify-between text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-md">
-                    <span>Amount Paid to Date:</span>
-                    <span className="font-mono">-${billingSummary.totalPaid.toFixed(2)} CAD</span>
+                  <div className="flex justify-between text-[#8B5E34] font-semibold bg-[#FAF5EE] px-2.5 py-1 rounded-md">
+                    <span>80% Retainer Deposit (to book):</span>
+                    <span className="font-mono">${billingSummary.deposit80.toFixed(2)} CAD</span>
                   </div>
-                  <div className="flex justify-between text-[#4b2f1d] font-bold bg-[#fdfbf7] border border-[#f5efeb] px-2.5 py-1.5 rounded-md text-sm">
-                    <span>Balance Remaining Due:</span>
-                    <span className="font-mono">${billingSummary.remainingBalance.toFixed(2)} CAD</span>
+                  <div className="flex justify-between text-gray-700 font-medium bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-md">
+                    <span>Remaining 20% Balance (due at event):</span>
+                    <span className="font-mono">${(billingSummary.total * 0.2).toFixed(2)} CAD</span>
                   </div>
                 </div>
 
                 {/* INTERAC NOTICE IN MODAL */}
-                {billingSummary.remainingBalance > 0 && (
-                  <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-[11px] text-blue-900 leading-relaxed space-y-1">
-                    <p className="font-bold flex items-center gap-1">
-                      <Send className="w-3 h-3 text-blue-600" />
-                      Awaiting Interac Retainer Transfer?
-                    </p>
-                    <p className="text-blue-700/90 font-light">
-                      {/* Explaining the correct Interac transfer email target */}
-                      If paying via e-Transfer, please transfer your due balance to: <strong className="font-mono text-blue-950 font-bold">isaiahsixtycreations@gmail.com</strong>.
-                    </p>
-                  </div>
-                )}
+                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-[11px] text-blue-900 leading-relaxed space-y-1">
+                  <p className="font-bold flex items-center gap-1">
+                    <Send className="w-3 h-3 text-blue-600" />
+                    Interac e-Transfer Instructions
+                  </p>
+                  <p className="text-blue-700/90 font-light">
+                    To confirm and secure your booking, please send your 80% retainer deposit (<strong className="font-mono font-bold">${billingSummary.deposit80.toFixed(2)} CAD</strong>) via Interac e-Transfer to: <strong className="font-mono text-blue-950 font-bold">isaiahsixtycreations@gmail.com</strong>.
+                  </p>
+                </div>
+
+                {/* ORDERING NOTICE & POLICIES IN RECEIPT */}
+                <div className="p-3 bg-[#fdfbf7] border border-gray-200 rounded-xl text-[11px] text-gray-600 space-y-1">
+                  <p className="font-semibold text-gray-800 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-[#8B5E34] shrink-0" />
+                    Isaiah Sixty Creations Ordering Notice:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-500 pl-1">
+                    <li>We require a minimum 48-hour advanced booking for large tray sizes.</li>
+                    <li>Estimated items (*) like swallow rolls and plain rice trays are custom adjustable to cater to custom crowd guest count requests.</li>
+                    <li>Please explicitly state allergies or spices customization requests inside the Special Instructions chef box.</li>
+                  </ul>
+                </div>
 
               </div>
 
@@ -1661,20 +1790,6 @@ We turn your catering events into golden culinary moments.
           <p className="max-w-md mx-auto text-[11px] text-gray-400 leading-relaxed font-light">
             Crafting premium West African, traditional soups, and Continental meals for weddings, birthdays, corporate functions, and intimate banquet feasts.
           </p>
-          <div>
-            <a
-              href="/admin"
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.hash = '#admin';
-                window.history.pushState({}, '', '/admin');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }}
-              className="text-[11px] font-semibold text-gray-400 hover:text-white underline transition-colors"
-            >
-              🔒 Admin Google Workspace Portal
-            </a>
-          </div>
         </div>
       </footer>
 

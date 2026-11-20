@@ -21,47 +21,53 @@ import springRollsImg from './assets/images/Menu/Spring rolls .jpg';
 import vegetableSoupImg from './assets/images/Menu/Vegetable Soup.jpeg';
 import whiteRiceImg from './assets/images/Menu/White rice.jpg';
 import friedFishImg from './assets/images/Menu/Fried Fish.jpg';
+import puffPuffImg from './assets/images/Menu/Puff-Puff.jpg';
+import turkeyImg from './assets/images/Menu/Turkey.jpg';
 import chinChinImg from './assets/images/Menu/Chin Chin.jpg';
 import chinChin300gImg from './assets/images/Menu/Chin Chin 300g.jpg';
 import chinChin700gImg from './assets/images/Menu/Chin Chin 700g.jpg';
 import chinChin1500gImg from './assets/images/Menu/Chin Chin 1500g.jpg';
+import chinChin300gPringlesImg from './assets/images/Menu/Chin Chin 300g Pringles.jpg';
+import chinChin700gPringlesImg from './assets/images/Menu/Chin Chin 700g Pringles.jpg';
+import chinChin1500gPringlesImg from './assets/images/Menu/Chin Chin 1500g Pringles.jpg';
+import chinChinAllSizesImg from './assets/images/Menu/Chin Chin All Sizes.jpg';
 
 // Export categories to preserve order and grouping in the UI
 export const CATEGORIES: { name: FoodCategory; icon: string; description: string }[] = [
   {
     name: 'Meats',
     icon: 'Beef',
-    description: 'Succulent, richly seasoned meat and poultry dishes'
+    description: 'Seasoned meat and poultry dishes'
   },
   {
     name: 'Rice',
     icon: 'ChefHat',
-    description: 'Flavorful West African signature rice delicacies'
+    description: 'West African rice favorites'
   },
   {
     name: 'Soups',
     icon: 'Soup',
-    description: 'Traditional, nutritious, slow-simmered rich soups'
+    description: 'Traditional homemade soups'
   },
   {
     name: 'Small chops',
     icon: 'Cookie',
-    description: 'Delectable, bite-sized party favorites and appetizers'
+    description: 'Finger foods and party snacks'
   },
   {
     name: 'Pastries',
     icon: 'Croissant',
-    description: 'Golden, freshly baked sweet and savory pastries'
+    description: 'Fresh baked pies and rolls'
   },
   {
     name: 'Sides',
     icon: 'Utensils',
-    description: 'Perfect accompaniments to round out your feast'
+    description: 'Side dishes to complete your meal'
   },
   {
     name: 'Swallows',
     icon: 'CircleDot',
-    description: 'Authentic dough-like accompaniments for soups'
+    description: 'Traditional swallows for soups'
   }
 ];
 
@@ -74,7 +80,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Meats',
     unit: '2 litres',
     price: 150.00,
-    description: 'Tender goatmeat chunks, slow-cooked in a rich, aromatic blend of peppers, onions, and local spices.',
+    description: 'Tender goat meat slow-cooked with peppers, onions, and spices.',
     imageUrl: goatMeatImg
   },
   {
@@ -83,7 +89,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Meats',
     unit: '1 doz',
     price: 40.00,
-    description: 'Flavor-infused chicken parts, seasoned with garlic, ginger, and herbs, grilled or fried to golden perfection.',
+    description: 'Seasoned chicken pieces, grilled or fried.',
     imageUrl: chickenImg
   },
   {
@@ -92,7 +98,8 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Meats',
     unit: '1 doz',
     price: 41.00,
-    description: 'Crispy yet juicy seasoned turkey wings and drumettes, marinated in a special chef blend of savory spices.'
+    description: 'Crispy seasoned turkey wings and drumettes.',
+    imageUrl: turkeyImg
   },
   {
     id: 'meat-fish',
@@ -100,7 +107,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Meats',
     unit: '1 doz',
     price: 60.00,
-    description: 'Marinated fish cutlets, coated in seasoned batter and deep-fried until wonderfully crispy outside and flaky inside.',
+    description: 'Seasoned fish cutlets, fried until crispy on the outside.',
     imageUrl: friedFishImg
   },
 
@@ -111,7 +118,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Pastries',
     unit: '0.5 dozen',
     price: 12.50,
-    description: 'Flaky golden puff pastry rolled around seasoned, spiced minced sausage meat, baked fresh.',
+    description: 'Golden puff pastry filled with seasoned sausage meat.',
     imageUrl: sausageRollImg
   },
   {
@@ -120,7 +127,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Pastries',
     unit: '1 dozen',
     price: 15.00,
-    description: 'Classic West African buns, sweet and crunchy on the outside, soft and cake-like on the inside.',
+    description: 'Sweet fried buns, crispy outside and soft inside.',
     imageUrl: bunsImg
   },
   {
@@ -129,7 +136,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Pastries',
     unit: '0.5 dozen',
     price: 25.00,
-    description: 'Buttery, crumbly shortcrust pastry cases generously filled with seasoned minced beef, potatoes, and carrots.',
+    description: 'Flaky pastry filled with seasoned minced beef, potatoes, and carrots.',
     imageUrl: meatpieImg
   },
   {
@@ -138,7 +145,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Pastries',
     unit: '0.5 dozen',
     price: 30.00,
-    description: 'Rich, golden crust encasing a creamy filling of seasoned shredded chicken breasts and mixed garden vegetables.',
+    description: 'Flaky pastry filled with seasoned chicken and vegetables.',
     imageUrl: chickenPieImg
   },
 
@@ -149,7 +156,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Rice',
     unit: '1 liter',
     price: 60.00,
-    description: 'Authentic smoky Jollof rice cooked in a robust tomato, red bell pepper, and scotch bonnet base with fine spices.'
+    description: 'Classic smoky Jollof rice cooked in a seasoned tomato and pepper base.'
   },
   {
     id: 'rice-fried',
@@ -157,7 +164,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Rice',
     unit: '1 liter',
     price: 80.00,
-    description: 'Fragrant parboiled rice stir-fried with sweet peas, carrots, sweet corn, green peppers, liver, and rich stock.',
+    description: 'Rice stir-fried with mixed vegetables, liver, and chicken.',
     imageUrl: friedRiceImg
   },
 
@@ -168,7 +175,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Sides',
     unit: '1 dozen',
     price: 36.00,
-    description: 'Nutritious steamed bean pudding crafted from pureed peeled beans, red peppers, onions, and boiled eggs.',
+    description: 'Steamed bean pudding made with peppers, onions, and boiled eggs.',
     imageUrl: moinmoinImg
   },
   {
@@ -178,7 +185,7 @@ export const MENU_ITEMS: MenuItem[] = [
     unit: '1 tray',
     price: 45.00,
     isCustomPrice: true,
-    description: 'Perfectly parboiled, fluffy, hot long-grain white rice, ready to pair with any of our savory stews and soups.',
+    description: 'Fluffy steamed white rice, great with stews and soups.',
     imageUrl: whiteRiceImg
   },
 
@@ -188,13 +195,13 @@ export const MENU_ITEMS: MenuItem[] = [
     name: 'Chin Chin',
     category: 'Small chops',
     unit: '300g',
-    price: 12.00,
-    description: 'Crispy, golden-fried crunchy West African pastry bites delicately flavored with nutmeg, sweet cream, and pure vanilla. Available in 300g snack pouch, 700g family canister, and 1500g party bucket.',
+    price: 17.50,
+    description: 'Crispy fried pastry snack seasoned with nutmeg and vanilla. Available in 300g, 700g, and 1500g.',
     imageUrl: chinChinImg,
     portions: [
-      { id: '300g', label: '300g', unit: '300g pouch', price: 12.00 },
-      { id: '700g', label: '700g', unit: '700g canister', price: 22.00 },
-      { id: '1500g', label: '1500g', unit: '1500g (1.5kg) bucket', price: 40.00 }
+      { id: '300g', label: '300g', unit: '300g pouch', price: 17.50 },
+      { id: '700g', label: '700g', unit: '700g jar', price: 27.50 },
+      { id: '1500g', label: '1500g', unit: '1500g (1.5kg) tub', price: 48.50 }
     ]
   },
   {
@@ -203,7 +210,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Small chops',
     unit: '1 dozen',
     price: 24.00,
-    description: 'Crispy pastry sheets hand-rolled with a savory stir-fried shredded vegetable and minced protein filling.',
+    description: 'Crispy fried rolls filled with seasoned vegetables and chicken.',
     imageUrl: springRollsImg
   },
   {
@@ -212,7 +219,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Small chops',
     unit: '1 dozen',
     price: 24.00,
-    description: 'Delectably crisp, triangular pastry pockets packed with a spicy minced beef, pea, and onion mixture.',
+    description: 'Crispy pastry triangles filled with spiced minced beef and onions.',
     imageUrl: samosaImg
   },
   {
@@ -221,7 +228,8 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Small chops',
     unit: '1 tray (40 balls)',
     price: 25.00,
-    description: 'Irresistibly sweet, spongy, and golden deep-fried yeast dough balls, a beloved crowd-pleasing snack.'
+    description: 'Sweet, golden fried dough balls.',
+    imageUrl: puffPuffImg
   },
   {
     id: 'chops-peppered-chicken',
@@ -229,7 +237,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Small chops',
     unit: '1 dozen',
     price: 30.00,
-    description: 'Mini fried chicken pieces tossed in a hot, sweet, and sticky habanero-bell pepper sauce blend.',
+    description: 'Fried chicken pieces tossed in spicy pepper sauce.',
     imageUrl: pepperedChickenImg
   },
   {
@@ -238,7 +246,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Small chops',
     unit: '1 dozen',
     price: 36.00,
-    description: 'Soft, fried dough rolls wrapping a whole hard-boiled egg in the center, satisfyingly thick and savory.',
+    description: 'Fried dough roll with a whole boiled egg inside.',
     imageUrl: eggRollImg
   },
 
@@ -249,7 +257,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Soups',
     unit: '2 litres',
     price: 100.00,
-    description: 'A nourishing traditional soup cooked with assorted fresh local leafy vegetables, stock fish, and rich seasonings.',
+    description: 'Leafy vegetable soup cooked with meat, fish, and seasonings.',
     imageUrl: vegetableSoupImg
   },
   {
@@ -258,7 +266,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Soups',
     unit: '2 litres',
     price: 80.00,
-    description: 'Rich soup thickened with ground melon seeds, cooked with chopped spinach, stock fish, and premium local spices.',
+    description: 'Traditional soup made with ground melon seeds, spinach, and meat.',
     imageUrl: egusiSoupImg
   },
   {
@@ -267,7 +275,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'Soups',
     unit: '2 litres',
     price: 90.00,
-    description: 'An authentic Efik soup made with shredded Afang (wild spinach) leaves, water leaves, and generous assorted meats.',
+    description: 'Hearty soup made with shredded afang leaves, spinach, and assorted meat.',
     imageUrl: afangSoupImg
   },
 
@@ -279,7 +287,7 @@ export const MENU_ITEMS: MenuItem[] = [
     unit: '1 roll',
     price: 6.00,
     isCustomPrice: true,
-    description: 'Smooth, dense swallow prepared from premium pan-fried cassava flakes (Garri) hydrated in steaming hot water.',
+    description: 'Smooth swallow made from cassava flakes (garri).',
     imageUrl: ebaImg
   },
   {
@@ -289,7 +297,7 @@ export const MENU_ITEMS: MenuItem[] = [
     unit: '1 roll',
     price: 8.00,
     isCustomPrice: true,
-    description: 'Soft, stretchy, pillowy white swallow kneaded to absolute perfection from real dehydrated sweet white yam.',
+    description: 'Soft, smooth swallow made from yam flour.',
     imageUrl: poundoYamImg
   },
   {
@@ -299,7 +307,7 @@ export const MENU_ITEMS: MenuItem[] = [
     unit: '1 roll',
     price: 7.00,
     isCustomPrice: true,
-    description: 'Delicately textured, smooth semolina swallow prepared carefully to avoid lumps, pairing perfectly with egusi.'
+    description: 'Smooth swallow made from semolina.'
   }
 ];
 
@@ -330,90 +338,90 @@ export const CHIN_CHIN_SIZES_DATA: ChinChinSizeSpecification[] = [
   {
     id: '300g',
     weight: '300g',
-    header: '300g Artisanal Snack Pouch',
-    subHeader: 'Personal on-the-go snack or party favor',
-    badge: 'Grab & Go Size',
-    price: 12.00,
-    servings: '1 - 2 Persons',
-    packaging: 'Aroma-Sealed Kraft Stand-Up Pouch with Clear Display Window',
+    header: '300g Snack Pack',
+    subHeader: 'Single or couple snack',
+    badge: '300g',
+    price: 17.50,
+    servings: '1 - 2 people',
+    packaging: 'Pouch bag (300g)',
     highlights: [
-      'Resealable zipper keeps chin chin crisp for weeks',
-      'Ideal for gifts, goodie bags, desk snacks, and personal treats',
-      'Freshly baked daily with authentic nutmeg & vanilla'
+      'Resealable bag keeps snacks fresh and crunchy',
+      'Great for quick snacking and gifts',
+      'Freshly made with butter, nutmeg, and vanilla'
     ],
-    description: 'Our 300g snack pouch is designed for convenience without compromising on quality. Filled with crunchy, bite-sized golden pastry bites seasoned with real dairy butter and delicate nutmeg.',
+    description: 'Crunchy bite-sized pastry bites seasoned with real butter, nutmeg, and vanilla.',
     defaultPictures: [
       {
-        id: 'pic-300g-1',
-        url: chinChin300gImg,
-        title: '300g Kraft Display Pouch',
-        caption: 'Resealable craft standing pouch with clear display window showing crisp chin chin cubes.'
+        id: 'pic-300g-pringles',
+        url: chinChin300gPringlesImg,
+        title: '300g Bag beside Pringles Can',
+        caption: '300g pouch bag shown beside a standard Pringles can for size comparison.'
       },
       {
-        id: 'pic-300g-2',
-        url: chinChinImg,
-        title: 'Artisanal Bowl Presentation',
-        caption: 'Freshly fried golden cubes poured into a ceramic bowl ready to enjoy.'
+        id: 'pic-all-sizes-1',
+        url: chinChinAllSizesImg,
+        title: 'All Sizes Together',
+        caption: 'All three bag sizes (300g, 700g, 1500g) side by side in one picture.'
       }
     ]
   },
   {
     id: '700g',
     weight: '700g',
-    header: '700g Gourmet Family Canister',
-    subHeader: 'Medium table centerpiece & sharing jar',
-    badge: 'Most Popular Family Size',
-    price: 22.00,
-    servings: '4 - 6 Persons',
-    packaging: 'Clear Airtight Hexagonal Canister with Metallic Gold Screw Top',
+    header: '700g Family Bag',
+    subHeader: 'Medium sharing size',
+    badge: '700g',
+    price: 27.50,
+    servings: '4 - 6 people',
+    packaging: 'Medium bag (700g)',
     highlights: [
-      'Airtight luxury container preserves perfect crunch',
-      'Stunning tabletop presentation for family gatherings and living rooms',
-      'The ideal hostess gift or holiday present'
+      'Great for sharing at home or the office',
+      'Airtight bag keeps snacks crunchy for weeks',
+      'Eligible for nationwide shipping'
     ],
-    description: 'The 700g canister is the centerpiece favorite for homes and office spaces. Packed generously in an elegant clear canister jar with a gold metallic lid that keeps every piece delightfully crunchy.',
+    description: 'Packed in a secure bag to stay fresh and crunchy. Great for family sharing.',
     defaultPictures: [
       {
-        id: 'pic-700g-1',
-        url: chinChin700gImg,
-        title: '700g Airtight Hexagonal Canister',
-        caption: 'Gourmet transparent jar with gold lid displaying amber-golden chin chin pieces.'
+        id: 'pic-700g-pringles',
+        url: chinChin700gPringlesImg,
+        title: '700g Bag beside Pringles Can',
+        caption: '700g bag shown beside a standard Pringles can for size comparison.'
       },
       {
-        id: 'pic-700g-2',
-        url: chinChinImg,
-        title: 'Hand-Cut Pastry Texture',
-        caption: 'Close-up of golden brown pastry cubes with delicate sweet-savory crumb.'
+        id: 'pic-all-sizes-2',
+        url: chinChinAllSizesImg,
+        title: 'All Sizes Together',
+        caption: 'All three bag sizes (300g, 700g, 1500g) side by side in one picture.'
       }
     ]
   },
   {
     id: '1500g',
     weight: '1500g',
-    header: '1500g Grand Celebration Bucket',
-    subHeader: 'Feast, banquet & catering party size (1.5 kg)',
-    badge: 'Catering & Event Value',
-    price: 40.00,
-    servings: '10 - 15 Persons',
-    packaging: 'Heavy-Duty Food-Grade Party Tub Bucket with Carrying Handle & Snap Lock',
+    header: '1500g Party Bag (1.5 kg)',
+    subHeader: 'Large party size (1.5 kg)',
+    badge: '1500g',
+    price: 48.50,
+    servings: '10 - 15 people',
+    packaging: 'Jumbo bag (1500g / 1.5kg)',
     highlights: [
-      'Maximum value per gram for weddings, birthdays, and church events',
-      'Sturdy carry handle for easy transport and party setup',
-      'Provides generous portions for 10 to 15 happy guests'
+      'Best value for parties, events, and birthdays',
+      'Feeds 10 to 15 people',
+      'Eligible for nationwide shipping'
     ],
-    description: 'When hosting an unforgettable party or celebrating a special milestone, the 1500g (1.5kg) Grand Celebration Bucket delivers ample crunchy delight. Handcrafted in small batches and packed to the brim.',
+    description: 'Our largest size for parties, birthdays, weddings, church events, and family gatherings.',
     defaultPictures: [
       {
-        id: 'pic-1500g-1',
-        url: chinChin1500gImg,
-        title: '1500g Party Catering Bucket',
-        caption: 'Generous 1.5kg clear catering bucket with sturdy handle and gold celebration seal.'
+        id: 'pic-1500g-pringles',
+        url: chinChin1500gPringlesImg,
+        title: '1500g Bag beside Pringles Can',
+        caption: '1500g jumbo bag shown beside a standard Pringles can for size comparison.'
       },
       {
-        id: 'pic-1500g-2',
-        url: chinChinImg,
-        title: 'Celebration Platter Serving',
-        caption: 'Heaped serving bowl ready for grand wedding receptions and anniversary buffets.'
+        id: 'pic-all-sizes-3',
+        url: chinChinAllSizesImg,
+        title: 'All Sizes Together',
+        caption: 'All three bag sizes (300g, 700g, 1500g) side by side in one picture.'
       }
     ]
   }

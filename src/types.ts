@@ -56,5 +56,14 @@ export interface OrderDetails {
   isDepositPaid: boolean; // Tracking checkmark: deposit status
   isFullPaymentMade: boolean; // Tracking checkmark: full payment status
   paymentMethod: 'card' | 'interac' | null; // Chosen payment pipeline
+  interacRefNumber?: string; // Interac e-Transfer reference number
   cardDetails: CardDetails; // Holds entered card details if applicable
+  isChinChinOnly?: boolean; // True when order contains only Chin Chin
+  subtotal?: number; // Cart subtotal before shipping/delivery
+  shippingFee?: number; // Calculated shipping fee
+  totalAmount?: number; // Total payable amount
+  shippingStreet?: string; // Shipping street address
+  shippingCity?: string; // Shipping city
+  shippingState?: string; // Shipping state or province
+  shippingPostalCode?: string; // Shipping postal or zip code
 }
