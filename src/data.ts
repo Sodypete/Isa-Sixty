@@ -24,13 +24,10 @@ import friedFishImg from './assets/images/Menu/Fried Fish.jpg';
 import puffPuffImg from './assets/images/Menu/Puff-Puff.jpg';
 import turkeyImg from './assets/images/Menu/Turkey.jpg';
 import chinChinImg from './assets/images/Menu/Chin Chin.jpg';
-import chinChin300gImg from './assets/images/Menu/Chin Chin 300g.jpg';
-import chinChin700gImg from './assets/images/Menu/Chin Chin 700g.jpg';
-import chinChin1500gImg from './assets/images/Menu/Chin Chin 1500g.jpg';
-import chinChin300gPringlesImg from './assets/images/Menu/Chin Chin 300g Pringles.jpg';
-import chinChin700gPringlesImg from './assets/images/Menu/Chin Chin 700g Pringles.jpg';
-import chinChin1500gPringlesImg from './assets/images/Menu/Chin Chin 1500g Pringles.jpg';
-import chinChinAllSizesImg from './assets/images/Menu/Chin Chin All Sizes.jpg';
+import chinChin300gImg from './assets/images/Menu/Chin 300g.jpeg';
+import chinChin700gImg from './assets/images/Menu/Chin 700g.jpeg';
+import chinChin1500gImg from './assets/images/Menu/Chin 1500g.jpeg';
+import chinChinAllSizesImg from './assets/images/Menu/Chin All 3.jpeg';
 
 // Export categories to preserve order and grouping in the UI
 export const CATEGORIES: { name: FoodCategory; icon: string; description: string }[] = [
@@ -352,10 +349,10 @@ export const CHIN_CHIN_SIZES_DATA: ChinChinSizeSpecification[] = [
     description: 'Crunchy bite-sized pastry bites seasoned with real butter, nutmeg, and vanilla.',
     defaultPictures: [
       {
-        id: 'pic-300g-pringles',
-        url: chinChin300gPringlesImg,
-        title: '300g Bag beside Pringles Can',
-        caption: '300g pouch bag shown beside a standard Pringles can for size comparison.'
+        id: 'pic-300g-comparison',
+        url: chinChin300gImg,
+        title: '300g Bag Size Comparison',
+        caption: '300g pouch bag shown beside a standard 15 oz can for size comparison.'
       },
       {
         id: 'pic-all-sizes-1',
@@ -382,10 +379,10 @@ export const CHIN_CHIN_SIZES_DATA: ChinChinSizeSpecification[] = [
     description: 'Packed in a secure bag to stay fresh and crunchy. Great for family sharing.',
     defaultPictures: [
       {
-        id: 'pic-700g-pringles',
-        url: chinChin700gPringlesImg,
-        title: '700g Bag beside Pringles Can',
-        caption: '700g bag shown beside a standard Pringles can for size comparison.'
+        id: 'pic-700g-comparison',
+        url: chinChin700gImg,
+        title: '700g Bag Size Comparison',
+        caption: '700g bag shown beside a standard 15 oz can for size comparison.'
       },
       {
         id: 'pic-all-sizes-2',
@@ -412,10 +409,10 @@ export const CHIN_CHIN_SIZES_DATA: ChinChinSizeSpecification[] = [
     description: 'Our largest size for parties, birthdays, weddings, church events, and family gatherings.',
     defaultPictures: [
       {
-        id: 'pic-1500g-pringles',
-        url: chinChin1500gPringlesImg,
-        title: '1500g Bag beside Pringles Can',
-        caption: '1500g jumbo bag shown beside a standard Pringles can for size comparison.'
+        id: 'pic-1500g-comparison',
+        url: chinChin1500gImg,
+        title: '1500g Bag Size Comparison',
+        caption: '1500g jumbo bag shown beside a standard 15 oz can for size comparison.'
       },
       {
         id: 'pic-all-sizes-3',

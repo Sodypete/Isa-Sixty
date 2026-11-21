@@ -117,8 +117,9 @@ export default function App() {
   // State for announcement banner visibility
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   
-  // Copy feedback state for copying interac email or receipt summary
+  // Copy feedback state for copying interac email, zelle number, or receipt summary
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedZelle, setCopiedZelle] = useState(false);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
 
   // Error alert message state
@@ -283,6 +284,13 @@ export default function App() {
     navigator.clipboard.writeText('isaiahsixtycreations@gmail.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  // Safe Zelle number copier trigger
+  const handleCopyZelle = () => {
+    navigator.clipboard.writeText('7732511810');
+    setCopiedZelle(true);
+    setTimeout(() => setCopiedZelle(false), 2500);
   };
 
   // Formats credit card input with spaces every 4 digits
@@ -1376,7 +1384,7 @@ We turn your catering events into golden culinary moments.
                 >
                   <div className="flex items-center gap-2">
                     <Send className="w-4 h-4 text-[#8B5E34]" />
-                    <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">Enter Email for Interac</span>
+                    <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">Interac and Zelle details</span>
                   </div>
                   {isInteracExpanded ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
                 </button>
@@ -1423,15 +1431,36 @@ We turn your catering events into golden culinary moments.
                         </div>
                       </div>
 
-                      <div className="text-[11px] text-gray-500 space-y-1.5 pl-1 font-light">
-                        <p className="font-bold text-gray-700 font-sans">How to pay via e-Transfer:</p>
-                        <ol className="list-decimal list-inside space-y-1">
-                          <li>Log into your online banking app or portal.</li>
-                          <li>Navigate to "Send Money via Interac e-Transfer".</li>
-                          <li>Add recipient <strong className="text-gray-700 font-mono font-bold">Isaiah Sixty Creations</strong> with email above.</li>
-                          <li>Input either the 80% retainer or the full total.</li>
-                          <li>After transferring, toggle the payment checkmarks above to automatically generate your verified invoice receipt.</li>
-                        </ol>
+                      <div className="p-3 bg-[#fdfbf7] border border-[#f5efeb] rounded-xl space-y-2">
+                        <h4 className="text-xs font-bold text-[#4B2F1D]">
+                          For US customers using Zelle
+                        </h4>
+                        <p className="text-xs text-gray-700 font-medium leading-relaxed">
+                          Send Zelle payments to:
+                        </p>
+                        <div className="flex items-center justify-between bg-white border border-[#f5efeb] p-2 rounded-lg">
+                          <span className="font-mono text-xs font-bold text-gray-800 select-all px-1">
+                            7732511810
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleCopyZelle}
+                            className="bg-[#8B5E34] hover:bg-[#a67341] text-white p-1.5 rounded transition-all flex items-center gap-1 active:scale-95 shrink-0 cursor-pointer"
+                            title="Copy Zelle number to clipboard"
+                          >
+                            {copiedZelle ? (
+                              <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-semibold px-1">Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-semibold px-1 font-sans">Copy</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )}

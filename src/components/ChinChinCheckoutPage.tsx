@@ -62,6 +62,7 @@ export const ChinChinCheckoutPage: React.FC<ChinChinCheckoutPageProps> = ({
   // Payment accordions
   const [isInteracExpanded, setIsInteracExpanded] = useState(true);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedZelle, setCopiedZelle] = useState(false);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
 
   // Submission & validation
@@ -109,6 +110,12 @@ export const ChinChinCheckoutPage: React.FC<ChinChinCheckoutPageProps> = ({
     navigator.clipboard.writeText('isaiahsixtycreations@gmail.com');
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  const handleCopyZelle = () => {
+    navigator.clipboard.writeText('7732511810');
+    setCopiedZelle(true);
+    setTimeout(() => setCopiedZelle(false), 2500);
   };
 
   const handleSubmitChinChinOrder = async (e: React.FormEvent) => {
@@ -723,7 +730,7 @@ Thank you for ordering Isaiah Sixty Creations Chin Chin!
                     <div className="flex items-center gap-2">
                       <Send className="w-4 h-4 text-[#8B5E34]" />
                       <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-                        Pay via Interac e-Transfer
+                        Interac and Zelle details
                       </span>
                     </div>
                     {isInteracExpanded ? (
@@ -766,6 +773,38 @@ Thank you for ordering Isaiah Sixty Creations Chin Chin!
                               </>
                             )}
                           </button>
+                        </div>
+
+                        <div className="p-3 bg-[#fdfbf7] border border-[#f5efeb] rounded-xl space-y-2">
+                          <h4 className="text-xs font-bold text-[#4B2F1D]">
+                            For US customers using Zelle
+                          </h4>
+                          <p className="text-xs text-gray-700 font-medium leading-relaxed">
+                            Send Zelle payments to:
+                          </p>
+                          <div className="flex items-center justify-between bg-white border border-[#f5efeb] p-2 rounded-lg">
+                            <span className="font-mono text-xs font-bold text-gray-800 select-all px-1">
+                              7732511810
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleCopyZelle}
+                              className="bg-[#8B5E34] hover:bg-[#a67341] text-white p-1.5 rounded transition-all flex items-center gap-1 active:scale-95 shrink-0 cursor-pointer"
+                              title="Copy Zelle number to clipboard"
+                            >
+                              {copiedZelle ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] font-semibold px-1">Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] font-semibold px-1 font-sans">Copy</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </motion.div>
                     )}
